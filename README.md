@@ -11,8 +11,8 @@ Simple like a puppy
 ; into the above expression automatically,
 ; so no need to go on a bracket rampage
 >>> (+ 1 2)
-
 3.0
+
 ; lists can be constructed like so
 >>> ((list 3) ((list 4) ((list 5) 6)))
 (3.0, (4.0, (5.0, 6.0)))
