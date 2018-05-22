@@ -1,5 +1,4 @@
 # Puppy
-<<<<<<< HEAD
 
 Simple like a puppy
 
@@ -39,5 +38,3 @@ Simple like a puppy
 
 ; and that's about it
 ```
-=======
->>>>>>> cdd993999523af1629ab8a45b4730590046abd7c
