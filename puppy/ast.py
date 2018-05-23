@@ -43,7 +43,15 @@ class Pair(Value):
         
         value = self.values[0].evaluate(env)
         # special case for syntactic sugar.
-        if value is not lib.list_to_pairs:
-            return value(self.values[1].evaluate(env))
-        else:
+        if value is lib.list_to_pairs:
             return value([v.evaluate(env) for v in self.values[1].values])
+        elif value is lib._lambda:
+            return value(self.values[1], env)
+        # hacky, this is the second stage stage of the lambda function and
+        # the argument (function body at this point) should not be evaluated 
+        # as it will (probably) contain references to the argument name provided 
+        # to the lambda, which will not be defined yet
+        elif value.__name__ is "lambda_body":
+            return value(self.values[1]) 
+        else:
+            return value(self.values[1].evaluate(env))

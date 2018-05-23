@@ -37,4 +37,9 @@ Simple like a puppy
 (3.0, (4.0, 5.0))
 
 ; and that's about it
-```
+``` 
+
+## Todo
+- fix buggy list literal syntax
+- better error handling
+- empty lists

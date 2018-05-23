@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
 
-from functools import reduce
+from functools import reduce, cmp_to_key
+from puppy import environment
+from puppy import ast
 
 
 def pairs_to_list(p):
-    if type(p) == tuple:
-        return [p[0]] + pairs_to_list(p[1])
-    else:
-        return [p]
+    res = []
+    while type(p) == tuple:
+        res.append(p[0])
+        p = p[1]
+    res.append(p)
+    return res
 
 
 def list_to_pairs(l):
-    result = reduce(lambda x, y: (y, x), reversed(l))
-    return result
+    return reduce(lambda x, y: (y, x), reversed(l))
 
 
 def addition(x):
@@ -33,16 +36,20 @@ def _list(x):
 
 
 def concat(x):
-    return lambda y: list_to_pairs(pairs_to_list(x) + pairs_to_list(y))
+    def _concat(y):
+        if type(x) == tuple and type(y) == tuple:
+            return list_to_pairs(pairs_to_list(x) + pairs_to_list(y))
+        elif type(x) == tuple:
+            return (list_to_pairs(x), y)
+        elif type(y) == tuple:
+            return (x, list_to_pairs(y))
+        else:
+            return (x, y)
+    return _concat
 
 
 def _map(f):
-    def __map(x):
-        if type(x) == tuple:
-            return f(x[0]), __map(x[1])
-        else:
-            return f(x)
-    return __map
+    return lambda x: list_to_pairs([f(x_) for x_ in pairs_to_list(x)])
 
 
 def _range(a):
@@ -122,6 +129,42 @@ def snd(_):
     return lambda y: y
 
 
+def _lambda(x, env):
+    if type(x) != ast.Symbol:
+        raise ValueError("Lambda requires a symbol as its first argument.")
+    def lambda_body(body):
+        def apply(y):
+            sub_env = environment.Environment(parent=env)
+            sub_env[x.value] = y
+            return body.evaluate(sub_env)
+        return apply
+    return lambda_body
+
+
+def head(x):
+    return x[0]
+
+
+def tail(x):
+    return x[1]
+
+
+def _if(cond):
+    def __if(x):
+        return lambda y: x if cond else y
+    return __if
+
+
+def define(x, env):
+    def _define(y):
+        env[x.value] = y
+    return _define
+
+
+def length(x):
+    return float(len(pairs_to_list(x)))
+
+
 def exports():
     return {
         "+": addition,
@@ -149,4 +192,10 @@ def exports():
         "or": _or,
         "not": _not,
         "__list": list_to_pairs,
+        "lambda": _lambda,
+        "λ": _lambda,
+        "if": _if,
+        "head": head,
+        "tail": tail,
+        "length": length,
     }
