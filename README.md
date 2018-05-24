@@ -43,3 +43,4 @@ Simple like a puppy
 - fix buggy list literal syntax
 - better error handling
 - empty lists
+- unit tests for lib.py and parse.py 

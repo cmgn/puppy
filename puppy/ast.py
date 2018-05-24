@@ -10,8 +10,13 @@ from puppy import lib
 
 
 class Value(metaclass=abc.ABCMeta):
+    """Abstract class that acts as the superclass of all values on the AST"""
     @abc.abstractmethod
     def evaluate(self, env):
+        """
+        Evaluate the tree, env is the environment that the tree should use as
+        a lookup.
+        """
         raise NotImplementedError()
 
 
@@ -32,6 +37,10 @@ class Symbol(Value):
 
 
 class Pair(Value):
+    """
+    All function applications are represented as a pair in the tree, in which the 
+    first element is the function name (or value) and the second is an argument.
+    """
     def __init__(self, values):
         self.values = values
     

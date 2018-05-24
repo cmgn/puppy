@@ -7,6 +7,7 @@ from puppy import ast
 
 
 def pairs_to_list(p):
+    """Convert a pair of the form (value, next-pair) into a list"""
     res = []
     while type(p) == tuple:
         res.append(p[0])
@@ -16,6 +17,7 @@ def pairs_to_list(p):
 
 
 def list_to_pairs(l):
+    """Inverse of the pairs_to_list function"""
     return reduce(lambda x, y: (y, x), reversed(l))
 
 
@@ -36,6 +38,7 @@ def _list(x):
 
 
 def concat(x):
+    """Concatenate two lists"""
     def _concat(y):
         if type(x) == tuple and type(y) == tuple:
             return list_to_pairs(pairs_to_list(x) + pairs_to_list(y))
@@ -49,18 +52,22 @@ def concat(x):
 
 
 def _map(f):
+    """Map the function f over each element of the list x"""
     return lambda x: list_to_pairs([f(x_) for x_ in pairs_to_list(x)])
 
 
 def _range(a):
+    """Create a list of numbers in the interval [a, b)"""
     return lambda b: list_to_pairs(list(map(float, range(int(a), int(b)))))
 
 
 def to(a):
+    """Create a list of the numbers in the interval [0, a)"""
     return _range(0)(a)
 
 
 def fold(f):
+    """Transform a list into a single value using the function f"""
     def _fold(x):
         if type(x) == tuple:
             return f(_fold(x[1]))(x[0])
@@ -70,12 +77,14 @@ def fold(f):
 
 
 def compose(f):
+    """Compose a function f and a function g"""
     def _compose(g):
         return lambda *x: f(g(*x))
     return _compose
 
 
 def flip(f):
+    """Flip the arguments a function f takes"""
     def _flip(x):
         return lambda y: f(y)(x)
     return _flip
@@ -118,7 +127,8 @@ def _not(x):
 
 
 def _filter(f):
-        return lambda l: list_to_pairs([x for x in pairs_to_list(l) if f(x)])
+    """Remove the numbers not satisfying the predicate function f from the list""" 
+    return lambda l: list_to_pairs([x for x in pairs_to_list(l) if f(x)])
 
 
 def fst(x):
@@ -130,6 +140,7 @@ def snd(_):
 
 
 def _lambda(x, env):
+    """Create a lambda abstraction"""
     if type(x) != ast.Symbol:
         raise ValueError("Lambda requires a symbol as its first argument.")
     def lambda_body(body):
@@ -153,12 +164,6 @@ def _if(cond):
     def __if(x):
         return lambda y: x if cond else y
     return __if
-
-
-def define(x, env):
-    def _define(y):
-        env[x.value] = y
-    return _define
 
 
 def length(x):

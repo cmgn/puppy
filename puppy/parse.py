@@ -5,6 +5,14 @@ from puppy import ast
 
 
 def auto_curry(tokens):
+    """
+    Automatically transform a function application into curried
+    function application.
+    
+    e.g.
+    (+ 1 2) -> ((+ 1) 2)
+    (map (+ 1) [1 2 3]) -> ((map (+ 1)) [1 2 3])
+    """
     prev = tokens[:2]
     tokens = tokens[2:]
     while tokens:
@@ -14,6 +22,10 @@ def auto_curry(tokens):
 
 
 def parse(tokens, i=0, closing=")"):
+    """
+    Convert a list of tokens into list of lists to be interpreted
+    by the convert_to_tree function
+    """
     parsed = []
     while i < len(tokens) and tokens[i] != closing:
         token = tokens[i]
@@ -33,6 +45,10 @@ def parse(tokens, i=0, closing=")"):
 
 
 def convert_to_tree(expression):
+    """
+    Convert a list of tokens into a tree structure, utilising the parse
+    function for formatting.
+    """
     def _treeify(expression):
         if type(expression) == str:
             return ast.Symbol(expression)

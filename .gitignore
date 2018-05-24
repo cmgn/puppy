@@ -2,3 +2,4 @@
 *.pyo
 test.pup
 out.txt
+.vscode
