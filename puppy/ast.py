@@ -49,10 +49,10 @@ class Pair(Value):
         # applied function
         if callable(self.values[0]):
             return self.values[0](self.values[1].evaluate(env))
-        
+
         value = self.values[0].evaluate(env)
         # special case for syntactic sugar.
-        if value is lib.list_to_pairs:
+        if value is lib.list_literal:
             return value([v.evaluate(env) for v in self.values[1].values])
         elif value is lib._lambda:
             return value(self.values[1], env)

@@ -6,21 +6,6 @@ from puppy import environment
 from puppy import ast
 
 
-def pairs_to_list(p):
-    """Convert a pair of the form (value, next-pair) into a list"""
-    res = []
-    while type(p) == tuple:
-        res.append(p[0])
-        p = p[1]
-    res.append(p)
-    return res
-
-
-def list_to_pairs(l):
-    """Inverse of the pairs_to_list function"""
-    return reduce(lambda x, y: (y, x), reversed(l))
-
-
 def addition(x):
     return lambda y: x + y
 
@@ -34,31 +19,32 @@ def multiplication(x):
 
 
 def _list(x):
-    return lambda y: (x, y)
+    def __list(y):
+        return [x, y]
+    return __list
+
+
+def list_literal(x):
+    """
+    Create a new list from an existing list: for now this is just
+    the identity function.
+    """
+    return x
 
 
 def concat(x):
     """Concatenate two lists"""
-    def _concat(y):
-        if type(x) == tuple and type(y) == tuple:
-            return list_to_pairs(pairs_to_list(x) + pairs_to_list(y))
-        elif type(x) == tuple:
-            return (list_to_pairs(x), y)
-        elif type(y) == tuple:
-            return (x, list_to_pairs(y))
-        else:
-            return (x, y)
-    return _concat
+    return lambda y: x + y
 
 
 def _map(f):
     """Map the function f over each element of the list x"""
-    return lambda x: list_to_pairs([f(x_) for x_ in pairs_to_list(x)])
+    return lambda x: list(map(f, x))
 
 
 def _range(a):
     """Create a list of numbers in the interval [a, b)"""
-    return lambda b: list_to_pairs(list(map(float, range(int(a), int(b)))))
+    return lambda b: list(map(float, range(int(a), int(b))))
 
 
 def to(a):
@@ -69,10 +55,12 @@ def to(a):
 def fold(f):
     """Transform a list into a single value using the function f"""
     def _fold(x):
-        if type(x) == tuple:
-            return f(_fold(x[1]))(x[0])
+        if len(x) > 1:
+            return f(_fold(x[1:]))(x[0])
+        elif len(x) == 1:
+            return x[0  ]
         else:
-            return x
+            raise ValueError("Cannot fold empty list")
     return _fold
 
 
@@ -95,11 +83,11 @@ def negate(x):
 
 
 def odd(x):
-    return x & 1
+    return float(int(x) & 1)
 
 
 def even(x):
-    return not odd(x)
+    return float(not odd(x))
 
 
 def eq(x):
@@ -115,20 +103,20 @@ def lt(x):
 
 
 def _or(x):
-    return lambda y: x or y
+    return lambda y: float(x or y)
 
 
 def _and(x):
-    return lambda y: x and y
+    return lambda y: float(x and y)
 
 
 def _not(x):
-    return not x
+    return float(not x)
 
 
 def _filter(f):
     """Remove the numbers not satisfying the predicate function f from the list""" 
-    return lambda l: list_to_pairs([x for x in pairs_to_list(l) if f(x)])
+    return lambda l: [x for x in l if f(x)]
 
 
 def fst(x):
@@ -153,11 +141,14 @@ def _lambda(x, env):
 
 
 def head(x):
-    return x[0]
+    try:
+        return x[0]
+    except IndexError:
+        raise ValueError("Can not perform 'head' function on an empty list.")
 
 
 def tail(x):
-    return x[1]
+    return x[1:]
 
 
 def _if(cond):
@@ -167,7 +158,11 @@ def _if(cond):
 
 
 def length(x):
-    return float(len(pairs_to_list(x)))
+    return float(len(x))
+
+
+def null(x):
+    return float(len(x) == 0)
 
 
 def exports():
@@ -187,8 +182,8 @@ def exports():
         "=": eq,
         "<": lt,
         "neg": negate,
-        "odd": odd,
-        "even": even,
+        "odd?": odd,
+        "even?": even,
         "to": to,
         "flip": flip,
         "concat": concat,
@@ -196,11 +191,12 @@ def exports():
         "and": _and,
         "or": _or,
         "not": _not,
-        "__list": list_to_pairs,
+        "__list": list_literal,
         "lambda": _lambda,
         "λ": _lambda,
         "if": _if,
         "head": head,
         "tail": tail,
         "length": length,
+        "null?": null,
     }
