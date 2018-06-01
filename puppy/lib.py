@@ -62,14 +62,7 @@ def to(a):
 
 def fold(f):
     """Transform a list into a single value using the function f"""
-    def _fold(x):
-        if len(x) > 1:
-            return f(_fold(x[1:]))(x[0])
-        elif len(x) == 1:
-            return x[0]
-        else:
-            raise ValueError("Cannot fold empty list")
-    return _fold
+    return lambda x: reduce(lambda a, b: f(a)(b), x)
 
 
 def compose(f):
@@ -185,6 +178,20 @@ def null(x):
     return int(not bool(x))
 
 
+def list_to_tuple(x):
+    return tuple(x)
+
+
+def uncurry(f):
+    if f is _lambda:
+        raise ValueError("Cannot uncurry function 'lambda'")
+    return lambda x: f(x[0])(x[1]) 
+
+
+def repeat_n(x):
+    return lambda n: [x] * n
+
+
 def _assert(x):
     assert x
     return 1
@@ -229,4 +236,6 @@ def exports():
         "length": length,
         "null?": null,
         "assert": _assert,
+        "uncurry": uncurry,
+        "repeat": repeat_n,
     }
