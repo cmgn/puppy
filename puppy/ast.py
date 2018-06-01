@@ -45,8 +45,7 @@ class Pair(Value):
         self.values = values
     
     def evaluate(self, env):
-        # if it is callable then it must be a partially
-        # applied function
+        # if it is callable then it must be a partially applied function
         if callable(self.values[0]):
             return self.values[0](self.values[1].evaluate(env))
 
@@ -60,7 +59,7 @@ class Pair(Value):
         # the argument (function body at this point) should not be evaluated 
         # as it will (probably) contain references to the argument name provided 
         # to the lambda, which will not be defined yet
-        elif value.__name__ is "lambda_body":
+        elif value.__name__ == "lambda_body":
             return value(self.values[1]) 
         else:
             return value(self.values[1].evaluate(env))

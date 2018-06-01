@@ -15,11 +15,11 @@ def main():
         try:
             for tree in trees.values:
                 print(tree.evaluate(root_env))
-        except (ValueError, AssertionError) as e:
+        except ValueError as e:
             print(e)
         except TypeError as e:
             print(f"Malformed expression: {e}")
-            print("This was probably caused by giving a function too many arguments")
+            print("This was probably caused by giving a function bad arguments")
         except RecursionError:
             print("Could not display expression: too large.")
         expression = input(">>> ")

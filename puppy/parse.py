@@ -38,7 +38,6 @@ def parse(tokens, i=0, closing=")"):
         else:
             parsed.append(token)
         i += 1
-    # automatic currying time
     if len(parsed) > 2 and closing != "]":
         parsed = auto_curry(parsed)
     return parsed, i
@@ -52,7 +51,7 @@ def convert_to_tree(expression):
     def _treeify(expression):
         if type(expression) == str:
             return ast.Symbol(expression)
-        elif type(expression) == float:
+        elif type(expression) in (float, int):
             return ast.Number(expression)
         elif type(expression) == list:
             return ast.Pair([_treeify(sub_expr) for sub_expr in expression])

@@ -8,7 +8,10 @@ def to_tokens(text):
     converted = []
     for token in text:
         try:
-            converted.append(float(token))
+            converted.append(int(token))
         except ValueError:
-            converted.append(token)
+            try:
+                converted.append(float(token))
+            except ValueError:
+                converted.append(token)
     return converted

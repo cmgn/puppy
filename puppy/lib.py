@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-from functools import reduce, cmp_to_key
+from functools import reduce
 from puppy import environment
 from puppy import ast
 
@@ -16,6 +16,14 @@ def subtraction(x):
 
 def multiplication(x):
     return lambda y: x * y
+
+def division(x):
+    def _division(y):
+        try:
+            return x / y
+        except ZeroDivisionError:
+            raise ValueError("cannot divide by 0")
+    return _division
 
 
 def _list(x):
@@ -44,7 +52,7 @@ def _map(f):
 
 def _range(a):
     """Create a list of numbers in the interval [a, b)"""
-    return lambda b: list(map(float, range(int(a), int(b))))
+    return lambda b: list(range(int(a), int(b)))
 
 
 def to(a):
@@ -58,7 +66,7 @@ def fold(f):
         if len(x) > 1:
             return f(_fold(x[1:]))(x[0])
         elif len(x) == 1:
-            return x[0  ]
+            return x[0]
         else:
             raise ValueError("Cannot fold empty list")
     return _fold
@@ -69,6 +77,10 @@ def compose(f):
     def _compose(g):
         return lambda *x: f(g(*x))
     return _compose
+
+
+def compose_list(fs):
+    return reduce(lambda f, g: lambda *a: f(g(*a)), fs)
 
 
 def flip(f):
@@ -83,35 +95,35 @@ def negate(x):
 
 
 def odd(x):
-    return float(int(x) & 1)
+    return int(x) & 1
 
 
 def even(x):
-    return float(not odd(x))
+    return int(not x & 1)
 
 
 def eq(x):
-    return lambda y: float(x == y)
+    return lambda y: int(x == y)
 
 
 def gt(x):
-    return lambda y: float(x > y)
+    return lambda y: int(x > y)
 
 
 def lt(x):
-    return lambda y: float(x < y)
+    return lambda y: int(x < y)
 
 
 def _or(x):
-    return lambda y: float(x or y)
+    return lambda y: int(x or y)
 
 
 def _and(x):
-    return lambda y: float(x and y)
+    return lambda y: int(x and y)
 
 
 def _not(x):
-    return float(not x)
+    return int(not x)
 
 
 def _filter(f):
@@ -151,18 +163,31 @@ def tail(x):
     return x[1:]
 
 
-def _if(cond):
+def init(x):
+    return x[:-1]
+
+
+def last(x):
+    return x[-1]
+
+
+def _if(cond, env):
     def __if(x):
         return lambda y: x if cond else y
     return __if
 
 
 def length(x):
-    return float(len(x))
+    return len(x)
 
 
 def null(x):
-    return float(len(x) == 0)
+    return int(not bool(x))
+
+
+def _assert(x):
+    assert x
+    return 1
 
 
 def exports():
@@ -170,6 +195,7 @@ def exports():
         "+": addition,
         "-": subtraction,
         "*": multiplication,
+        "/": division,
         "list": _list,
         "range": _range,
         "map": _map,
@@ -177,6 +203,7 @@ def exports():
         "snd": snd,
         "fold": fold,
         "compose": compose,
+        "compose-list": compose_list,
         "filter": _filter,
         ">": gt,
         "=": eq,
@@ -197,6 +224,9 @@ def exports():
         "if": _if,
         "head": head,
         "tail": tail,
+        "last": last,
+        "init": init,
         "length": length,
         "null?": null,
+        "assert": _assert,
     }
