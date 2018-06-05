@@ -14,12 +14,6 @@ Simple like a puppy
 3.0
 
 ; lists can be constructed like so
->>> ((list 3) ((list 4) ((list 5) 6)))
-[3.0, 4.0, 5.0, 6.0]
-; the interpreter has some magic that will
-; automatically interpret this as a list, so
-; there is no good reason to use the previously
-; mentioned syntax
 >>> [3 4 5 6]
 [3.0, 4.0, 5.0, 6.0]
 
@@ -39,15 +33,14 @@ Simple like a puppy
 ; lambda expressions are defined as follows
 >>> (map (lambda x (+ x 1)) [1 2 3])
 [2.0, 3.0, 4.0]
-; currently they can only take one argument, thus
-; any functions requiring more than one argument must 
-; make use of nested lambdas
-; I am looking to provide mechanism by which a lambda
-; can be declared with more than one argument, which the
-; interpreter will transform into a nested series of lambdas,
-; however this is a long way away.
+; or alternatively, they can be written as
+>>> (map (x -> (+ x 1)) [1 2 3])
+[2.0, 3.0, 4.0]
 
-; and that's about it
+; variables can be defined as follows
+>>> (define add-one (+ 1))
+>>> (add-one 4)
+5
 ``` 
 
 ## Todo

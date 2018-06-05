@@ -138,9 +138,11 @@ def _lambda(x, env):
         raise ValueError("Lambda requires a symbol as its first argument.")
     def lambda_body(body):
         def apply(y):
-            sub_env = environment.Environment(parent=env)
-            sub_env[x.value] = y
-            return body.evaluate(sub_env)
+            nonlocal env
+            if not env.parent:
+                env = environment.Environment(parent=env)
+            env[x.value] = y
+            return body.evaluate(env)
         return apply
     return lambda_body
 
@@ -178,18 +180,12 @@ def null(x):
     return int(not bool(x))
 
 
-def list_to_tuple(x):
-    return tuple(x)
-
-
 def uncurry(f):
-    if f is _lambda:
-        raise ValueError("Cannot uncurry function 'lambda'")
-    return lambda x: f(x[0])(x[1]) 
+    return lambda x: f(x[0])(x[1])
 
 
-def repeat_n(x):
-    return lambda n: [x] * n
+def repeat_n(n):
+    return lambda x: [x] * n
 
 
 def _assert(x):

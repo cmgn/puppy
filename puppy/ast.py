@@ -58,7 +58,12 @@ class DefineStatement(Value):
         self.value = value
     
     def evaluate(self, env):
-        env[self.name] = self.value
+        try:
+            env.recursive_lookup(self.name)
+        except ValueError:
+            env[self.name] = self.value
+        else:
+            raise ValueError(f"Cannot redefine name {self.name}")
 
 
 class Pair(Value):
@@ -73,7 +78,6 @@ class Pair(Value):
         # if it is callable then it must be a partially applied function
         if callable(self.values[0]):
             return self.values[0](self.values[1].evaluate(env))
-
         value = self.values[0].evaluate(env)
         # special case for syntactic sugar.
         if value is lib.list_literal:

@@ -65,10 +65,8 @@ def convert_to_tree(expression):
             except TypeError:
                 raise ValueError("Invalid arguments given to an if statement.")
         elif type(expression) == list and expression and expression[0] == "define":
-            name = expression[1]
-            body = _treeify(expression[-1])
-            return ast.DefineStatement(name, body)
-        elif type(expression) == list and expression:
+            return ast.DefineStatement(expression[1], _treeify(expression[-1]))
+        elif type(expression) == list:
             return ast.Pair([_treeify(sub_expr) for sub_expr in expression])
         else:
             raise ValueError(f"Parser got bad value {str(expression)}")

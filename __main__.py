@@ -12,23 +12,26 @@ def split_tokens(token_list):
     split_expressions = []
     current_expression = []
     height = 0
-    for k, v in enumerate(token_list):
-        if v == ")":
+    for v in token_list:
+        if str(v) in ")]":
             height -= 1
-        elif v == "(":
+        elif str(v) in "([":
             height += 1
         current_expression.append(v)
         if not height:
             split_expressions.append(current_expression)
             current_expression = []
-    return split_expressions
+    if split_expressions:
+        return split_expressions
+    else:
+        raise ValueError("Unclosed brackets")
 
 
 def evaluate(expression, env):
     trees = parse.convert_to_tree(expression)
     for tree in trees.values:
         evaluated = tree.evaluate(env)
-        if evaluated:
+        if evaluated is not None:
             print(evaluated)
 
 
