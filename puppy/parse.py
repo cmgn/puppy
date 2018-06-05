@@ -3,16 +3,22 @@
 
 from puppy import ast
 
+UNCURRIED_FUNCTIONS = (
+    "if", "define"
+)
+
 
 def auto_curry(tokens):
     """
     Automatically transform a function application into curried
     function application.
-    
+
     e.g.
     (+ 1 2) -> ((+ 1) 2)
     (map (+ 1) [1 2 3]) -> ((map (+ 1)) [1 2 3])
     """
+    if tokens[0] in UNCURRIED_FUNCTIONS:
+        return tokens
     prev = tokens[:2]
     tokens = tokens[2:]
     while tokens:
@@ -53,10 +59,18 @@ def convert_to_tree(expression):
             return ast.Symbol(expression)
         elif type(expression) in (float, int):
             return ast.Number(expression)
-        elif type(expression) == list:
+        elif type(expression) == list and expression and expression[0] == "if":
+            try:
+                return ast.IfStatement(*[_treeify(expr) for expr in expression[1:]])
+            except TypeError:
+                raise ValueError("Invalid arguments given to an if statement.")
+        elif type(expression) == list and expression and expression[0] == "define":
+            name = expression[1]
+            body = _treeify(expression[-1])
+            return ast.DefineStatement(name, body)
+        elif type(expression) == list and expression:
             return ast.Pair([_treeify(sub_expr) for sub_expr in expression])
         else:
             raise ValueError(f"Parser got bad value {str(expression)}")
-
     expression_list = parse(expression)[0]  # throw away index returned
     return _treeify(expression_list)

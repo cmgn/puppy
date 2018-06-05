@@ -23,7 +23,7 @@ class Value(metaclass=abc.ABCMeta):
 class Number(Value):
     def __init__(self, value):
         self.value = value
-    
+
     def evaluate(self, env):
         return self.value
 
@@ -31,19 +31,44 @@ class Number(Value):
 class Symbol(Value):
     def __init__(self, value):
         self.value = value
+
+    def evaluate(self, env):
+        value = env.recursive_lookup(self.value)
+        if issubclass(value.__class__, Value):
+            return value.evaluate(env)
+        return value
+
+
+class IfStatement(Value):
+    def __init__(self, condition, yes, no):
+        self.condition = condition
+        self.yes = yes
+        self.no = no
+
+    def evaluate(self, env):
+        if self.condition.evaluate(env):
+            return self.yes.evaluate(env)
+        else:
+            return self.no.evaluate(env)
+
+
+class DefineStatement(Value):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
     
     def evaluate(self, env):
-        return env.recursive_lookup(self.value)
+        env[self.name] = self.value
 
 
 class Pair(Value):
     """
-    All function applications are represented as a pair in the tree, in which the 
+    All function applications are represented as a pair in the tree, in which the
     first element is the function name (or value) and the second is an argument.
     """
     def __init__(self, values):
         self.values = values
-    
+
     def evaluate(self, env):
         # if it is callable then it must be a partially applied function
         if callable(self.values[0]):
@@ -56,10 +81,10 @@ class Pair(Value):
         elif value is lib._lambda:
             return value(self.values[1], env)
         # hacky, this is the second stage stage of the lambda function and
-        # the argument (function body at this point) should not be evaluated 
-        # as it will (probably) contain references to the argument name provided 
+        # the argument (function body at this point) should not be evaluated
+        # as it will (probably) contain references to the argument name provided
         # to the lambda, which will not be defined yet
         elif value.__name__ == "lambda_body":
-            return value(self.values[1]) 
+            return value(self.values[1])
         else:
             return value(self.values[1].evaluate(env))

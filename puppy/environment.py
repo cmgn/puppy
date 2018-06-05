@@ -12,7 +12,7 @@ class Environment(dict):
     def __init__(self, lookup=None, parent=None):
         self.update((lookup or {}).items())
         self.parent = parent
-    
+
     def recursive_lookup(self, value):
         """Recursively traverse through environments looking for a symbol"""
         if value in self:

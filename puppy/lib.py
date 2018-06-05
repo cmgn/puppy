@@ -228,7 +228,6 @@ def exports():
         "__list": list_literal,
         "lambda": _lambda,
         "λ": _lambda,
-        "if": _if,
         "head": head,
         "tail": tail,
         "last": last,
