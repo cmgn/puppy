@@ -7,6 +7,12 @@ def to_tokens(text):
     text = text.split()
     converted = []
     for token in text:
+        # special syntactic sugar for a lambda
+        if token == "->":
+            var = converted.pop()
+            converted.append("lambda")
+            converted.append(var)
+            continue
         try:
             converted.append(int(token))
         except ValueError:
