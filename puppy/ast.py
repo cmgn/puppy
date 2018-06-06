@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 
 # most of this is boilerplate at the moment, however I
@@ -90,5 +90,4 @@ class Pair(Value):
         # to the lambda, which will not be defined yet
         elif value.__name__ == "lambda_body":
             return value(self.values[1])
-        else:
-            return value(self.values[1].evaluate(env))
+        return value(self.values[1].evaluate(env))

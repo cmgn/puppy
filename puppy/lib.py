@@ -1,29 +1,51 @@
 #!/usr/bin/env python3
 
-
+import math
 from functools import reduce
+from types import FunctionType
 from puppy import environment
 from puppy import ast
+from puppy import semantics
 
 
+@semantics.typechecked([int, float], "+")
 def addition(x):
-    return lambda y: x + y
+    @semantics.typechecked([int, float], "+")
+    def _addition(y):
+        return x + y
+    return _addition
 
 
+@semantics.typechecked([int, float], "-")
 def subtraction(x):
-    return lambda y: x - y
+    @semantics.typechecked([int, float], "-")
+    def _subtraction(y):
+        return x - y
+    return _subtraction
 
 
+@semantics.typechecked([int, float], "*")
 def multiplication(x):
-    return lambda y: x * y
+    @semantics.typechecked([int, float], "*")
+    def _multiplication(y):
+        return x * y
+    return _multiplication
 
+
+@semantics.typechecked([int, float], "/")
 def division(x):
+    @semantics.typechecked([int, float], "/")
     def _division(y):
         try:
             return x / y
         except ZeroDivisionError:
             raise ValueError("cannot divide by 0")
     return _division
+
+
+@semantics.typechecked([int, float], "sqrt")
+def sqrt(x):
+    return math.sqrt(x)
 
 
 def _list(x):
@@ -40,42 +62,63 @@ def list_literal(x):
     return x
 
 
+@semantics.typechecked([list], "concat")
 def concat(x):
     """Concatenate two lists"""
     return lambda y: x + y
 
 
+@semantics.typechecked([FunctionType], "map")
 def _map(f):
     """Map the function f over each element of the list x"""
-    return lambda x: list(map(f, x))
+    @semantics.typechecked([list], "map")
+    def __map(x):
+        return list(map(f, x))
+    return __map
 
 
+@semantics.typechecked([int, float], "range")
 def _range(a):
     """Create a list of numbers in the interval [a, b)"""
-    return lambda b: list(range(int(a), int(b)))
+    @semantics.typechecked([int, float], "range")
+    def __range(b):
+        return list(range(int(a), int(b)))
+    return __range
 
 
+@semantics.typechecked([int, float], "to")
 def to(a):
     """Create a list of the numbers in the interval [0, a)"""
     return _range(0)(a)
 
 
+@semantics.typechecked([FunctionType], "fold")
 def fold(f):
     """Transform a list into a single value using the function f"""
-    return lambda x: reduce(lambda a, b: f(a)(b), x)
+    @semantics.typechecked([list], "fold")
+    def _fold(x):
+        return reduce(lambda a, b: f(a)(b), x)
+    return _fold
 
 
+@semantics.typechecked([FunctionType], "compose")
 def compose(f):
     """Compose a function f and a function g"""
+    @semantics.typechecked([FunctionType], "compose")
     def _compose(g):
         return lambda *x: f(g(*x))
     return _compose
 
 
+# TODO: find a better way of dealing with situations like this,
+# where the function depends on the items within the list being of
+# a certain type
+@semantics.typechecked([list], "compose")
 def compose_list(fs):
     return reduce(lambda f, g: lambda *a: f(g(*a)), fs)
 
 
+@semantics.typechecked([FunctionType], "flip")
 def flip(f):
     """Flip the arguments a function f takes"""
     def _flip(x):
@@ -83,45 +126,73 @@ def flip(f):
     return _flip
 
 
+@semantics.typechecked([float, int], "negate")
 def negate(x):
     return -x
 
 
+@semantics.typechecked([float, int], "odd?")
 def odd(x):
     return int(x) & 1
 
 
+@semantics.typechecked([float, int], "even?")
 def even(x):
     return int(not x & 1)
 
 
+@semantics.typechecked([float, int, list], "eq?")
 def eq(x):
-    return lambda y: int(x == y)
+    @semantics.typechecked([type(x)], f"eq? ({type(x).__name__})")
+    def _eq(y):
+        return int(x == y)
+    return _eq
 
 
+@semantics.typechecked([float, int], ">")
 def gt(x):
-    return lambda y: int(x > y)
+    @semantics.typechecked([float, int], ">")
+    def _gt(y):
+        return int(x > y)
+    return _gt
 
 
+@semantics.typechecked([float, int], "<")
 def lt(x):
-    return lambda y: int(x < y)
+    @semantics.typechecked([float, int], "<")
+    def _lt(y):
+        return int(x < y)
+    return _lt
 
 
+@semantics.typechecked([float, int], "or")
 def _or(x):
-    return lambda y: int(x or y)
+    @semantics.typechecked([float, int], "or")
+    def __or(y):
+        return int(x or y)
+    return __or
 
 
+@semantics.typechecked([float, int], "and")
 def _and(x):
-    return lambda y: int(x and y)
+    @semantics.typechecked([float, int], "and")
+    def __and(y):
+        return int(x and y)
+    return __and
 
 
+@semantics.typechecked([int, float], "not")
 def _not(x):
     return int(not x)
 
 
+@semantics.typechecked([FunctionType], "filter")
 def _filter(f):
     """Remove the numbers not satisfying the predicate function f from the list""" 
-    return lambda l: [x for x in l if f(x)]
+    @semantics.typechecked([list], "filter")
+    def __filter(xs):
+        return [x for x in xs if f(x)]
+    return _filter
 
 
 def fst(x):
@@ -147,6 +218,7 @@ def _lambda(x, env):
     return lambda_body
 
 
+@semantics.typechecked([list], "head")
 def head(x):
     try:
         return x[0]
@@ -154,40 +226,42 @@ def head(x):
         raise ValueError("Can not perform 'head' function on an empty list.")
 
 
+@semantics.typechecked([list], "tail")
 def tail(x):
     return x[1:]
 
 
+@semantics.typechecked([list], "init")
 def init(x):
     return x[:-1]
 
 
+@semantics.typechecked([list], "last")
 def last(x):
     return x[-1]
 
 
-def _if(cond, env):
-    def __if(x):
-        return lambda y: x if cond else y
-    return __if
-
-
+@semantics.typechecked([list], "length")
 def length(x):
     return len(x)
 
 
+@semantics.typechecked([list, int, float], "null?")
 def null(x):
     return int(not bool(x))
 
 
+@semantics.typechecked([FunctionType], "uncurry")
 def uncurry(f):
     return lambda x: f(x[0])(x[1])
 
 
+@semantics.typechecked([int], "repeat")
 def repeat_n(n):
     return lambda x: [x] * n
 
 
+@semantics.typechecked([int, list, float], "assert")
 def _assert(x):
     assert x
     return 1
@@ -199,6 +273,7 @@ def exports():
         "-": subtraction,
         "*": multiplication,
         "/": division,
+        "sqrt": sqrt,
         "list": _list,
         "range": _range,
         "map": _map,

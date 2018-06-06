@@ -6,6 +6,7 @@ def to_tokens(text):
     text = text.replace("[", " [ ").replace("]", " ] ")
     text = text.split()
     converted = []
+    comment = False
     for token in text:
         # special syntactic sugar for a lambda
         if token == "->":
@@ -13,6 +14,13 @@ def to_tokens(text):
             converted.append("lambda")
             converted.append(var)
             continue
+        elif comment:
+            comment = token != ";"
+            continue
+        elif token == ";":
+            comment = True
+            continue
+
         try:
             converted.append(int(token))
         except ValueError:
