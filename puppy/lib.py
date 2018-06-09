@@ -209,11 +209,9 @@ def _lambda(x, env):
         raise ValueError("Lambda requires a symbol as its first argument.")
     def lambda_body(body):
         def apply(y):
-            nonlocal env
-            if not env.parent:
-                env = environment.Environment(parent=env)
-            env[x.value] = y
-            return body.evaluate(env)
+            sub_env = environment.Environment(parent=env)
+            sub_env[x.value] = y
+            return body.evaluate(sub_env)
         return apply
     return lambda_body
 

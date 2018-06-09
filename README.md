@@ -45,5 +45,5 @@ Simple like a puppy
 
 ## Todo
 - document stdlib.py
-- better error handling
 - unit tests for lib.py and parse.py 
+- re-make lexer and re-assign duties such as expanding lambdas to the parser
